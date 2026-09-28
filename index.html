@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIMINAL NIGHTMARE — High Concept Document</title>
+<style>
+  :root{
+    --amber:#ffb000;
+    --red:#ff2a2a;
+    --cyan:#35f0ff;
+    --bg:#0a0a0b;
+    --panel:#111113;
+    --line:rgba(255,255,255,.14);
+    --disp:"Arial Black","Arial Bold",Impact,sans-serif;
+    --mono:"Courier New",ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:#e9e6da;font-family:var(--mono);
+    line-height:1.6;overflow-x:hidden}
+
+  /* ============ FX (fijo, no captura scroll) ============ */
+  .fx{position:fixed;inset:0;pointer-events:none;z-index:900}
+  .fx-scan{background:repeating-linear-gradient(to bottom,
+    rgba(0,0,0,0) 0 2px,rgba(0,0,0,.20) 2px 4px);opacity:.5}
+  .fx-vig{background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%)}
+  .fx-noise{opacity:.07;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:300px 300px;animation:grain .5s steps(4) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-6%,4%)}
+    50%{transform:translate(4%,-7%)}75%{transform:translate(-3%,-3%)}100%{transform:translate(5%,6%)}}
+  .fx-track{overflow:hidden}
+  .fx-track i{position:absolute;left:-5%;width:110%;height:8vh;
+    background:linear-gradient(to bottom,transparent,rgba(255,255,255,.09) 30%,
+      rgba(180,200,255,.13) 50%,rgba(255,255,255,.06) 70%,transparent);
+    filter:blur(3px);animation:roll 9s linear infinite}
+  @keyframes roll{0%{top:110%}100%{top:-15%}}
+  body.glitching .fx-noise{opacity:.4}
+  body.glitching main{animation:skew .3s steps(2)}
+  @keyframes skew{0%{transform:translateX(6px)}30%{transform:translateX(-9px)}
+    60%{transform:translateX(4px)}100%{transform:translateX(0)}}
+
+  /* ============ HUD ============ */
+  .hud{position:fixed;z-index:950;pointer-events:none;
+    font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;
+    text-shadow:0 0 8px rgba(0,0,0,.9)}
+  .hud.tl{top:2.6vh;left:2.4vw;display:flex;align-items:center;gap:.9em;color:#fff}
+  .hud.tr{top:2.6vh;right:2.4vw;color:#fff}
+  .dot{width:.7em;height:.7em;border-radius:50%;background:var(--red);display:inline-block;
+    box-shadow:0 0 12px var(--red);animation:blink 1.2s infinite steps(1)}
+  @keyframes blink{0%,60%{opacity:1}61%,100%{opacity:.2}}
+  @keyframes blinkCover{
+    0%,60%{box-shadow:inset 0 0 0 1px var(--red),0 0 18px rgba(255,42,42,.45)}
+    61%,100%{box-shadow:inset 0 0 0 1px rgba(255,42,42,.55),0 0 6px rgba(255,42,42,.2)}
+  }
+  .prog{position:fixed;left:0;right:0;top:0;height:4px;background:rgba(255,255,255,.1);z-index:960}
+  .prog i{display:block;height:100%;width:0;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+  .hint{position:fixed;right:2.4vw;bottom:2.6vh;z-index:950;pointer-events:none;
+    font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:#6d6a62;
+    border:1px solid rgba(255,255,255,.12);padding:.5em 1em;background:rgba(0,0,0,.5);
+    transition:opacity .8s}
+  .hint.off{opacity:0}
+  #eggHint{color:#4a4740}
+
+  /* ============ LAYOUT ============ */
+  main{position:relative;z-index:10}
+  section{padding:9vh 7vw;border-bottom:1px solid var(--line);position:relative}
+  .num{position:absolute;top:3.5vh;right:6vw;font-family:var(--disp);
+    font-size:clamp(3rem,9vw,7rem);color:transparent;-webkit-text-stroke:1.5px rgba(255,176,0,.35);
+    line-height:.8;pointer-events:none}
+  .kicker{font-size:.72rem;letter-spacing:.42em;text-transform:uppercase;
+    color:var(--amber);margin-bottom:1.6vh;text-shadow:0 0 12px rgba(255,176,0,.5)}
+  h2{font-family:var(--disp);text-transform:uppercase;line-height:1;
+    font-size:clamp(1.7rem,4.4vw,3.6rem);color:#f5f1e3;margin-bottom:3vh}
+  h3{font-family:var(--disp);text-transform:uppercase;font-size:clamp(1rem,1.8vw,1.35rem);
+    color:var(--amber);letter-spacing:.03em;margin-bottom:1.2vh}
+  p{font-size:clamp(.9rem,1.25vw,1.05rem);color:#c9c5b9;max-width:78ch;margin-bottom:1.6vh}
+  .amber{color:var(--amber)}
+  .red{color:var(--red)}
+  strong{color:#f5f1e3}
+  em{color:var(--cyan);font-style:normal}
+  .lead{font-size:clamp(1.05rem,1.9vw,1.5rem);color:#e9e6da;max-width:70ch;line-height:1.55}
+
+  .glitch{position:relative;display:inline-block}
+  .glitch::before,.glitch::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;
+    pointer-events:none;mix-blend-mode:screen}
+  .glitch::before{color:#ff003c;transform:translate(-3px,1px);animation:gA 3.4s infinite steps(1)}
+  .glitch::after{color:#00e5ff;transform:translate(3px,-1px);animation:gB 2.6s infinite steps(1)}
+  @keyframes gA{0%,86%,100%{opacity:.5;clip-path:inset(0 0 0 0)}
+    87%{opacity:.9;clip-path:inset(12% 0 55% 0);transform:translate(-8px,1px)}
+    95%{clip-path:inset(30% 0 40% 0);transform:translate(-10px,0)}}
+  @keyframes gB{0%,80%,100%{opacity:.45;clip-path:inset(0 0 0 0)}
+    82%{opacity:.9;clip-path:inset(50% 0 20% 0);transform:translate(8px,-1px)}
+    93%{clip-path:inset(70% 0 5% 0);transform:translate(11px,0)}}
+
+  .chips{display:flex;flex-wrap:wrap;gap:1vh 1vw;margin-top:2vh}
+  .chip{border:1px solid rgba(255,255,255,.3);padding:.45em 1em;
+    font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;background:rgba(0,0,0,.5)}
+  .chip.hot{border-color:var(--amber);color:var(--amber);box-shadow:0 0 14px rgba(255,176,0,.22) inset}
+  .chip.bad{border-color:var(--red);color:var(--red)}
+
+  .frame{position:relative;overflow:hidden;background:#0a0a0c;border:1px solid var(--line);
+    box-shadow:0 12px 50px rgba(0,0,0,.7)}
+  .frame img{width:100%;height:100%;object-fit:cover;display:block;
+    filter:saturate(.85) contrast(1.06)}
+  .frame .lbl{position:absolute;left:0;right:0;bottom:0;padding:.8em 1em;
+    font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);
+    background:linear-gradient(to top,rgba(0,0,0,.92),transparent)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2.4vw;align-items:start}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.6vw}
+
+  table{width:100%;border-collapse:collapse;font-size:clamp(.78rem,1.05vw,.95rem);margin-top:1.5vh}
+  th,td{border:1px solid var(--line);padding:.75em .9em;text-align:left;vertical-align:top}
+  th{background:rgba(255,176,0,.09);color:var(--amber);text-transform:uppercase;
+    letter-spacing:.14em;font-size:.72rem}
+  td{color:#c9c5b9;background:rgba(255,255,255,.02)}
+  td b{color:#f5f1e3}
+  .tag{display:inline-block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;
+    border:1px solid currentColor;padding:.2em .6em;margin-top:.5em}
+
+  .panel{background:var(--panel);border:1px solid var(--line);padding:3vh 3vw;margin-top:2vh}
+  .panel h3{margin-bottom:1.5vh}
+
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:.6vh 1.4vw;font-size:.9rem}
+  .kv dt{color:var(--amber);text-transform:uppercase;letter-spacing:.14em;font-size:.72rem;
+    padding-top:.25em}
+  .kv dd{color:#c9c5b9}
+
+  /* ============ PORTADA ============ */
+  .cover{padding:0;height:100vh;border-bottom:1px solid var(--line);position:relative;
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .cover .art{position:absolute;inset:0}
+  .cover .art img{width:100%;height:100%;object-fit:cover;object-position:center 22%;
+    filter:contrast(1.08) saturate(.95)}
+  .cover .art::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(to bottom,rgba(0,0,0,.72) 0%,rgba(0,0,0,.25) 35%,
+      rgba(0,0,0,.55) 72%,rgba(10,10,11,.97) 100%)}
+  .cover .meta{position:relative;z-index:2;text-align:center;padding:0 6vw;
+    align-self:flex-end;margin-bottom:9vh}
+  .cover .badge{display:inline-block;border:1px solid var(--amber);color:var(--amber);
+    font-size:.68rem;letter-spacing:.4em;text-transform:uppercase;padding:.6em 1.6em;
+    background:rgba(0,0,0,.6);margin-bottom:2.4vh}
+  .cover h1{font-family:var(--disp);text-transform:uppercase;line-height:.86;
+    font-size:clamp(2.8rem,10vw,8rem);color:#f5f1e3;
+    text-shadow:0 0 50px rgba(255,42,42,.35),0 6px 40px rgba(0,0,0,.9)}
+  .cover .tagline{margin-top:2.2vh;font-size:clamp(.85rem,1.8vw,1.35rem);
+    letter-spacing:.34em;text-transform:uppercase;color:#d8d3c4}
+  .cover .team{margin-top:2.6vh;font-size:.72rem;letter-spacing:.3em;
+    text-transform:uppercase;color:#8f8a7e}
+  .scrollcue{position:absolute;left:50%;bottom:3vh;transform:translateX(-50%);z-index:3;
+    font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;color:#8f8a7e;
+    animation:blink 2s infinite steps(1)}
+
+  /* ============ ENEMIGOS ============ */
+  .enemy{background:var(--panel);border:1px solid var(--line);display:flex;flex-direction:column}
+  .enemy .pic{aspect-ratio:4/3;overflow:hidden;background:#000;position:relative}
+  .enemy .pic img{width:100%;height:100%;object-fit:cover;filter:contrast(1.1) saturate(.8)}
+  .enemy .body{padding:1.6vh 1.1vw}
+  .enemy .role{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:#8f8a7e}
+  .enemy h4{font-family:var(--disp);text-transform:uppercase;font-size:clamp(.95rem,1.5vw,1.2rem);
+    color:#f5f1e3;margin:.5vh 0 .8vh}
+  .enemy p{font-size:.8rem;line-height:1.5;margin:0;color:#b3afa3}
+  .enemy.nemesis{border-color:var(--red);box-shadow:0 0 30px rgba(255,42,42,.15)}
+  .enemy.nemesis h4{color:var(--red)}
+
+  /* ============ SLOTS / ITEMS ============ */
+  .slotsrow{display:flex;flex-wrap:wrap;gap:1vw;margin-top:2vh}
+  .slot{border:1px dashed rgba(255,255,255,.3);background:rgba(0,0,0,.45);
+    padding:.9em 1.1em;min-width:9.5vw;text-align:center}
+  .slot .cat{font-family:var(--disp);font-size:.82rem;text-transform:uppercase;color:#f5f1e3;
+    display:block;letter-spacing:.02em}
+  .slot .qty{font-size:.6rem;letter-spacing:.2em;color:var(--amber);text-transform:uppercase;
+    margin-top:.4em;display:block}
+  .slot.free{border-style:solid;border-color:var(--cyan)}
+  .slot.free .qty{color:var(--cyan)}
+
+  .cond{display:flex;gap:1.4vw;align-items:flex-start;padding:1.6vh 0;
+    border-bottom:1px solid var(--line)}
+  .cond:last-child{border-bottom:none}
+  .cond .n{font-family:var(--disp);font-size:1.6rem;color:var(--amber);line-height:1;
+    min-width:2.2ch}
+  .cond .t{font-size:.92rem;color:#c9c5b9}
+  .cond .t b{display:block;color:#f5f1e3;text-transform:uppercase;letter-spacing:.08em;
+    font-size:.85rem;margin-bottom:.2em}
+
+  /* kick diagram */
+  .kick{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6vw;margin-top:2vh}
+  .kick .step{border:1px solid var(--line);background:rgba(255,255,255,.02);padding:2vh 1.4vw;
+    position:relative}
+  .kick .step .k{font-family:var(--disp);font-size:.75rem;letter-spacing:.2em;color:var(--amber);
+    text-transform:uppercase;margin-bottom:.8vh}
+  .kick .step h5{font-family:var(--disp);text-transform:uppercase;font-size:.95rem;
+    color:#f5f1e3;margin-bottom:.6vh}
+  .kick .step p{font-size:.8rem;margin:0;color:#b3afa3}
+  .kick .step.win{border-color:rgba(255,176,0,.5);background:rgba(255,176,0,.05)}
+  .kick .step.lose{border-color:rgba(255,42,42,.5);background:rgba(255,42,42,.05)}
+
+  /* diagrama UML */
+  .uml{width:100%;background:#0d0d0f;border:1px solid var(--line);cursor:zoom-in;
+    filter:contrast(1.05)}
+  .uml:hover{filter:none}
+
+  /* historia beats */
+  .beats{list-style:none;margin-top:1vh;border-left:2px solid rgba(255,176,0,.4);padding-left:2.2vw}
+  .beats li{position:relative;padding:1.2vh 0;font-size:clamp(.88rem,1.2vw,1.02rem);color:#c9c5b9}
+  .beats li::before{content:"";position:absolute;left:-2.65vw;top:1.95vh;width:.65vw;
+    min-width:7px;aspect-ratio:1;background:var(--amber);box-shadow:0 0 10px var(--amber)}
+  .beats li b{color:#f5f1e3}
+
+  .spoiler{margin-top:2.5vh;border:1px solid var(--red);background:rgba(255,42,42,.06);
+    padding:2vh 2vw;position:relative;overflow:hidden}
+  .spoiler .k{font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;color:var(--red);
+    margin-bottom:1vh}
+  .spoiler-cover{position:absolute;inset:0;width:100%;height:100%;z-index:5;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.7vh;
+    background:repeating-linear-gradient(135deg,#1a0000 0 14px,#2a0505 14px 28px);
+    border:none;color:#ffd7d7;font-family:var(--mono);text-align:center;
+    animation:blinkCover 1.6s infinite steps(1);transition:opacity .25s}
+  .spoiler-cover:hover{background:repeating-linear-gradient(135deg,#240000 0 14px,#3a0808 14px 28px)}
+  .spoiler-cover .sc-warn{font-family:var(--disp);font-size:clamp(1.1rem,2.4vw,1.7rem);
+    color:var(--red);letter-spacing:.16em;text-transform:uppercase;
+    text-shadow:0 0 18px rgba(255,42,42,.8)}
+  .spoiler-cover .sc-text{font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;
+    color:#ffb0b0}
+  .spoiler-cover .sc-sub{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+    color:#8a5a5a}
+  .spoiler.revealed .spoiler-cover{opacity:0;pointer-events:none;animation:none}
+  .spoiler.revealed{box-shadow:0 0 26px rgba(255,42,42,.25)}
+
+  /* spoiler inline (tapado, clic para revelar) */
+  .sp-inline{position:relative;display:inline-block;cursor:pointer}
+  .sp-inline::before{content:"⚠ SPOILER";position:absolute;top:-.18em;bottom:-.14em;
+    left:-.4em;right:-.4em;z-index:6;display:flex;align-items:center;justify-content:center;
+    background:repeating-linear-gradient(135deg,#1a0000 0 10px,#2a0505 10px 20px);
+    border:1px solid var(--red);color:var(--red);font-family:var(--mono);
+    font-size:.6rem;letter-spacing:.24em;white-space:nowrap;
+    text-shadow:0 0 10px rgba(255,42,42,.9);
+    animation:blinkCover 1.6s infinite steps(1)}
+  .sp-inline.open::before{content:"";display:none;pointer-events:none;animation:none}
+  .sp-inline.open{color:var(--red);text-shadow:0 0 14px rgba(255,42,42,.5)}
+  .sp-inline.open.amber{color:var(--amber);text-shadow:0 0 14px rgba(255,176,0,.5)}
+  .sp-inline:focus-visible{outline:1px dashed var(--red);outline-offset:3px}
+
+  footer{padding:7vh 7vw 14vh;text-align:center;background:#050505}
+  footer .big{font-family:var(--disp);text-transform:uppercase;
+    font-size:clamp(1.3rem,3.4vw,2.6rem);color:#f5f1e3;line-height:1.15}
+  footer .tagline{margin-top:2vh;letter-spacing:.34em;text-transform:uppercase;
+    font-size:.8rem;color:var(--amber)}
+  footer .fine{margin-top:3vh;font-size:.65rem;letter-spacing:.24em;text-transform:uppercase;
+    color:#5e5b54}
+
+  /* ============ EASTER EGG ============ */
+  #egg{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.96);
+    display:none;align-items:center;justify-content:center;flex-direction:column;
+    padding:5vh 5vw;overflow:auto}
+  #egg.on{display:flex;animation:eggIn .25s steps(3)}
+  @keyframes eggIn{0%{opacity:0;transform:translateX(-14px)}
+    50%{opacity:1;transform:translateX(9px)}100%{transform:translateX(0)}}
+  #egg .h{font-family:var(--disp);text-transform:uppercase;color:var(--red);
+    font-size:clamp(1.3rem,4vw,2.6rem);letter-spacing:.06em;text-align:center;
+    text-shadow:0 0 26px rgba(255,42,42,.6);margin-bottom:1vh}
+  #egg .sub{font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:#8f8a7e;
+    margin-bottom:4vh;text-align:center}
+  #egg .memes{display:flex;gap:3vw;flex-wrap:wrap;justify-content:center;max-width:1200px}
+  #egg .memes figure{max-width:46vw}
+  #egg .memes img{width:100%;border:1px solid rgba(255,255,255,.25);
+    box-shadow:0 20px 60px rgba(0,0,0,.8);transform:rotate(-1.2deg)}
+  #egg .memes figure:nth-child(2) img{transform:rotate(1.4deg)}
+  #egg .memes figcaption{margin-top:1.2vh;font-size:.62rem;letter-spacing:.24em;
+    text-transform:uppercase;color:#6d6a62;text-align:center}
+  #egg .close{margin-top:5vh;font-size:.68rem;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--amber);border:1px solid var(--amber);padding:.7em 1.6em;
+    animation:blink 1.4s infinite steps(1)}
+
+  @media (max-width:900px){
+    .grid2,.grid3,.grid4,.kick{grid-template-columns:1fr}
+    .kv{grid-template-columns:1fr}
+    section{padding:7vh 6vw}
+    .num{display:none}
+    #egg .memes figure{max-width:88vw}
+  }
+  @media print{
+    .fx,.hud,.prog,.hint,#egg,.scrollcue{display:none!important}
+    .sp-inline::before,.spoiler-cover{display:none!important}
+    .sp-inline{color:inherit!important;text-shadow:none!important}
+    body{background:#fff;color:#111}
+    section{page-break-inside:avoid;border-color:#ccc}
+    p,td,li,.lead{color:#222}
+    h2,h3,strong{color:#000}
+    .cover{height:auto;page-break-after:always}
+    .cover .art::after{background:linear-gradient(to bottom,rgba(255,255,255,.6),#fff)}
+  }
+</style>
+</head>
+<body>
+
+<div class="prog"><i id="bar"></i></div>
+<div class="hud tl"><span class="dot"></span> REC · HCD</div>
+<div class="hud tr" id="tc">00:00:00</div>
+<div class="hint" id="hint">Ctrl+P exportar a PDF</div>
+<div class="hint" id="eggHint" style="right:auto;left:2.4vw;bottom:2.6vh">??</div>
+
+<main>
+
+  <!-- ============ 00 · PORTADA ============ -->
+  <section class="cover">
+    <div class="art"><img src="IMAGENES/hcd/LiminalNigthmare_copia.jpg" alt="Liminal Nightmare key art"></div>
+    <div class="meta">
+      <span class="badge">High Concept Document</span>
+      <h1><span class="glitch" data-t="LIMINAL">LIMINAL</span><br><span class="glitch" data-t="NIGHTMARE">NIGHTMARE</span></h1>
+      <div class="tagline">Solve · Explore · Kill · Repeat</div>
+      <div class="team">Ian · Agus · Fran · Mati — Diseño y Producción</div>
+    </div>
+    <div class="scrollcue">▼ scroll</div>
+  </section>
+
+  <!-- ============ 01 · LOGLINE ============ -->
+  <section>
+    <span class="num">01</span>
+    <div class="kicker">Logline</div>
+    <h2>Un survival horror donde el monstruo <span class="amber sp-inline" role="button" tabindex="0">sos vos.</span></h2>
+    <p class="lead">Sobreviví con <strong>un solo brazo</strong> a un hospital psiquiátrico infinito que se reescribe mientras corrés. Los guardias son criaturas ciegas, los pacientes son monstruos, los médicos te cazan. Y <span class="red">el psicólogo</span> te sigue sin descanso: <strong>nunca lo podés matar</strong>. Lo único que no se distorsiona sos vos… y eso es exactamente el problema.</p>
+    <div class="chips">
+      <span class="chip hot">Horror psicológico</span>
+      <span class="chip">Found footage / bodycam</span>
+      <span class="chip">Mundo procedural</span>
+      <span class="chip">Un solo brazo · 2 slots</span>
+      <span class="chip">Micrófono real = ruido</span>
+      <span class="chip bad">Nemesis imparable</span>
+    </div>
+    <div class="grid4" style="margin-top:4vh">
+      <div class="slot"><span class="cat">Género</span><span class="qty">Survival Horror FPS</span></div>
+      <div class="slot"><span class="cat">Cámara</span><span class="qty">Bodycam / VHS</span></div>
+      <div class="slot"><span class="cat">Estructura</span><span class="qty">Lineal + Procedural</span></div>
+      <div class="slot"><span class="cat">Tono</span><span class="qty">Uncanny · Realismo sucio</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 02 · HISTORIA ============ -->
+  <section>
+    <span class="num">02</span>
+    <div class="kicker">Historia</div>
+    <h2><span class="sp-inline" role="button" tabindex="0">Nunca estuviste huyendo de un monstruo.</span></h2>
+    <div class="grid2">
+      <div>
+        <p>El protagonista está internado en un hospital psiquiátrico tras un episodio violento que no recuerda del todo. <strong>Su percepción no es un narrador confiable.</strong></p>
+        <ul class="beats">
+          <li><b>El episodio.</b> Durante una alucinación, cree que pacientes y guardias quieren atraparlo y ataca a un guardia.</li>
+          <li><b>El disparo.</b> El guardia se defiende y le dispara en el brazo; muere. El brazo queda inutilizado.</li>
+          <li><b>La fuga.</b> Toma el arma del guardia y arranca su escape, convencido de que necesita huir.</li>
+          <li><b>El espacio infinito.</b> Recorre un lugar aparentemente infinito que cambia entre hospitales, apartamentos, centros comerciales, supermercados y estacionamientos de su pasado.</li>
+          <li><b>Los indicios.</b> Voces que lo llaman por su nombre. Puertas que se convierten en habitaciones del hospital. Rostros que por un instante recuperan su apariencia real.</li>
+          <li><b>El final.</b> <span class="sp-inline" role="button" tabindex="0">El psicólogo lo alcanza. No lo mata: lo sujeta — y la realidad empieza a cambiar.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="frame" style="aspect-ratio:4/3">
+          <img src="IMAGENES/hcd/pasilloHospital.png" alt="Pasillo de hospital">
+          <div class="lbl">Concept · pasillo de hospital</div>
+        </div>
+        <div class="frame" style="aspect-ratio:4/3;margin-top:2vh">
+          <img src="IMAGENES/hcd/pasilloHospital2.png" alt="Pasillo de hospital señalética">
+          <div class="lbl">Señalética que contradice lo que ves</div>
+        </div>
+        <div class="spoiler" id="spoiler1">
+          <div class="k">Final · spoilers</div>
+          <p style="margin:0">Los monstruos desaparecen. El laberinto se convierte en el hospital psiquiátrico. Los sonidos de persecución son voces de médicos y enfermeros. El psicólogo lo devuelve a la habitación de aislamiento… y él sigue convencido de que lo están persiguiendo.</p>
+          <button class="spoiler-cover" type="button" aria-label="Mostrar spoiler">
+            <span class="sc-warn">⚠ SPOILER</span>
+            <span class="sc-text">Tocá para revelar el final</span>
+            <span class="sc-sub">no lo rompas para los demás</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 · PROTAGONISTA ============ -->
+  <section>
+    <span class="num">03</span>
+    <div class="kicker">Protagonista</div>
+    <h2>No es un narrador confiable.</h2>
+    <div class="grid2">
+      <div>
+        <p class="lead">Lo que ves durante el juego es <strong>su percepción de la realidad</strong>, no lo que ocurre objetivamente. El jugador experimenta la psicosis desde adentro: los enemigos, los espacios y los finales son traducciones de su mente.</p>
+        <dl class="kv" style="margin-top:3vh">
+          <dt>Estado</dt><dd>Internado tras un episodio violento de origen difuso.</dd>
+          <dt>Condición física</dt><dd>Un brazo inutilizado → inventario de <strong>2 slots</strong> y una sola mano libre.</dd>
+          <dt>Percepción</dt><dd>Alucina en tiempo real: la gente se convierte en criaturas, los lugares se reescriben.</dd>
+          <dt>Objetivo</dt><dd>Escapar a cualquier costo de un lugar que no puede comprender.</dd>
+          <dt>Conflicto real</dt><dd><span class="sp-inline" role="button" tabindex="0">Está huyendo de su propia realidad, no de un monstruo.</span></dd>
+        </dl>
+      </div>
+      <div class="frame" style="aspect-ratio:1/1">
+        <img src="IMAGENES/gameplay7.png" alt="Percepción del protagonista">
+        <div class="lbl">Lo que el jugador ve · no es lo que hay</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 · ENEMIGOS ============ -->
+  <section>
+    <span class="num">04</span>
+    <div class="kicker">Enemigos</div>
+    <h2>Todo lo que te persigue <span class="amber">es gente.</span></h2>
+    <p>Cada enemigo es una persona real reinterpretada por la mente del protagonista. El diseño evita el gore explícito: <em>body horror sugerido</em> y efecto uncanny para alimentar la incomodidad.</p>
+
+    <div class="grid4" style="margin-top:3vh">
+      <div class="enemy nemesis">
+        <div class="pic"><img src="IMAGENES/hcd/conceptNemesis.png" alt="Concepto Nemesis"></div>
+        <div class="body">
+          <span class="role">Nemesis · único</span>
+          <h4>El Psicólogo</h4>
+          <p>Figura que intenta <strong>contenerlo</strong>. Persigue lentamente durante todo el juego y <strong>nunca puede ser derrotado</strong>: no se mata, no se frena del todo. Simplemente siempre te encuentra.</p>
+          <span class="tag red">Inmortal · inevitable</span>
+        </div>
+      </div>
+
+      <div class="enemy">
+        <div class="pic"><img src="IMAGENES/ConceptHotel.png" alt="Enemigo ciego"></div>
+        <div class="body">
+          <span class="role">Enemigos ciegos</span>
+          <h4>Guardias</h4>
+          <p>Los guardias del hospital. <strong>No ven correctamente</strong>: patrullan y reaccionan al sonido. Cazan por el oído — y el micrófono real del jugador es ruido.</p>
+          <span class="tag amber">Percepción sonora</span>
+        </div>
+      </div>
+
+      <div class="enemy">
+        <div class="pic"><img src="IMAGENES/hcd/ConceptZombie.png" alt="Concepto paciente"></div>
+        <div class="body">
+          <span class="role">Enemigos normales</span>
+          <h4>Pacientes</h4>
+          <p>Otros internos, vistos como <strong>criaturas deformes y agresivas</strong>. El clásico perseguidor de visión: te ven, te persiguen, te alcanzan.</p>
+          <span class="tag amber">Visión · agresivos</span>
+        </div>
+      </div>
+
+      <div class="enemy">
+        <div class="pic"><img src="IMAGENES/hcd/NuevoConceptRuner.png" alt="Concepto runner"></div>
+        <div class="body">
+          <span class="role">Runners</span>
+          <h4>Médicos</h4>
+          <p>El personal médico que intenta <strong>perseguir y contener</strong> al protagonista durante sus episodios. Rápidos, peligrosos, impacientes.</p>
+          <span class="tag amber">Velocidad · persecución</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Por qué importa</h3>
+      <p style="margin:0">La idea es reforzar que <strong>el verdadero horror no sean solo las criaturas, sino la sensación de irrealidad</strong>. Los enemigos "normales" se pueden matar; el psicólogo no. Esa asimetría es el motor de tensión del juego: siempre hay una amenaza que no podés resolver con balas.</p>
+    </div>
+  </section>
+
+  <!-- ============ 05 · MECÁNICAS ============ -->
+  <section>
+    <span class="num">05</span>
+    <div class="kicker">Jugabilidad</div>
+    <h2>Un brazo. Dos slots. Cada decisión pesa.</h2>
+
+    <div class="grid2">
+      <div>
+        <h3>La limitación como diseño</h3>
+        <p>Solo hay <strong>dos slots</strong> (Q / E). Linterna, arma o ítem útil: tener dos cosas a la vez es un lujo. <strong>Cambiar de arma es una decisión</strong>, no un hábito. Los power-ups (cintas) permiten montar armas cuerpo a cuerpo sobre el muñón y otorgan mejoras permanentes.</p>
+
+        <h3 style="margin-top:3vh">Mundo procedural por "blits"</h3>
+        <p>Módulos predefinidos que re combinan <strong>estética, habitaciones y dificultad</strong> de forma procedural. Cada partida recorre un laberinto distinto: nunca dos escapes iguales.</p>
+
+        <h3 style="margin-top:3vh">Ruido como sistema</h3>
+        <p>Correr hace ruido, agacharse casi ninguno — y el <strong>micrófono real</strong> del jugador suma al ruido percibido. Hablar fuerte te delata. El sonido es una mecánica, no un adorno.</p>
+      </div>
+      <div>
+        <div class="frame" style="aspect-ratio:16/10">
+          <img src="IMAGENES/gameplay1.png" alt="Gameplay mock-up">
+          <div class="lbl">Gameplay mock-up · linterna + muñón</div>
+        </div>
+        <div class="slotsrow">
+          <div class="slot"><span class="cat">Q</span><span class="qty">Slot 1</span></div>
+          <div class="slot"><span class="cat">E</span><span class="qty">Slot 2</span></div>
+          <div class="slot free"><span class="cat">Muñón</span><span class="qty">+ melee con cinta</span></div>
+        </div>
+        <div class="chips">
+          <span class="chip">Linterna</span>
+          <span class="chip">Revólver / Glock / Escopeta</span>
+          <span class="chip">Objetos útiles</span>
+          <span class="chip hot">Cinta → armas al muñón</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KICK -->
+    <div class="panel">
+      <h3>Mecánica de la patada <span style="color:#6d6a62;font-size:.7rem;letter-spacing:.2em">— parry temporizado</span></h3>
+      <p>La patada funciona como el <strong>parry de Souls</strong>: tenés que pegarla calculando el tiempo para que entre <em>justo cuando el enemigo te golpea</em>. No es un ataque, es una defensa ofensiva con castigo duro por fallar.</p>
+      <div class="kick">
+        <div class="step">
+          <div class="k">Paso 01</div>
+          <h5>Leé el ataque</h5>
+          <p>El enemigo entra en su windup. Esa es tu ventana: no podés spamear, tenés que timing.</p>
+        </div>
+        <div class="step win">
+          <div class="k">Paso 02 · acierto</div>
+          <h5>Parry perfecto</h5>
+          <p>La patada entra justo con el golpe: <strong>el enemigo se stunea</strong> y <strong>no te hace daño</strong>. Te abre la ventana para responder.</p>
+        </div>
+        <div class="step lose">
+          <div class="k">Paso 03 · fallo</div>
+          <h5>Fallaste el timing</h5>
+          <p>Si fallás el parry, <strong>recibís daño</strong> y la patada no hace ninguno. El riesgo es simétrico: nada de spam seguro.</p>
+        </div>
+      </div>
+      <p style="margin-top:2vh;font-size:.85rem;color:#8f8a7e">Los ítems permanentes modifican esta mecánica (stun más largo, patadas que dañan, menos ruido al patear) — ver sección 06.</p>
+    </div>
+  </section>
+
+  <!-- ============ 06 · ÍTEMS ============ -->
+  <section>
+    <span class="num">06</span>
+    <div class="kicker">Progresión</div>
+    <h2>Ítems permanentes: <span class="amber">ropa que cambia cómo jugás.</span></h2>
+
+    <div class="grid2">
+      <div>
+        <p>Se encuentran en el mundo y <strong>se adaptan al cuerpo</strong>: ropa y accesorios. Cada categoría ocupa <strong>un solo hueco</strong>; si agarrás uno nuevo con otro equipado, <strong>se intercambian</strong>. Los anillos y collares son ilimitados.</p>
+        <div class="slotsrow">
+          <div class="slot"><span class="cat">Pantalones</span><span class="qty">×1</span></div>
+          <div class="slot"><span class="cat">Zapatillas</span><span class="qty">×1</span></div>
+          <div class="slot"><span class="cat">Guantes</span><span class="qty">×1</span></div>
+          <div class="slot"><span class="cat">Remeras</span><span class="qty">×1</span></div>
+          <div class="slot"><span class="cat">Gorros</span><span class="qty">×1</span></div>
+          <div class="slot"><span class="cat">Máscaras</span><span class="qty">×1</span></div>
+          <div class="slot free"><span class="cat">Anillos</span><span class="qty">∞</span></div>
+          <div class="slot free"><span class="cat">Collares</span><span class="qty">∞</span></div>
+        </div>
+        <div class="frame" style="aspect-ratio:3/2;margin-top:2.5vh">
+          <img src="IMAGENES/hcd/cinta.png" alt="Cinta">
+          <div class="lbl">El power-up que abre el sistema: cinta</div>
+        </div>
+      </div>
+
+      <div>
+        <h3>Ejemplos de build</h3>
+        <table>
+          <tr><th>Ítem</th><th>Efecto</th></tr>
+          <tr><td><b>Zapatillas livianas</b></td><td>− ruido · − stun de patada</td></tr>
+          <tr><td><b>Botas pesadas</b></td><td>+ ruido · las patadas ahora <b>dañan</b>, no solo stunean</td></tr>
+          <tr><td><b>Guantes de látex</b></td><td>+ velocidad de recarga, sacar armas, etc.</td></tr>
+          <tr><td><b>Chaleco antibalas</b></td><td>+ ruido · + protección</td></tr>
+          <tr><td><b>Venda en la boca</b></td><td>Elimina la mecánica de escuchar el micrófono</td></tr>
+          <tr><td><b>Anillo C</b></td><td>×1.5 → ×3 de daño por cada nivel con la misma arma</td></tr>
+        </table>
+        <p style="margin-top:1.5vh;font-size:.82rem;color:#8f8a7e">Zapatillas deportivas (+velocidad) · termica (visibilidad térmica) · casco (++protección) · collar (−daño, −visión de enemigos)… el catálogo crece con la cursada.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Regla de oro: todo ítem cumple al menos una condición</h3>
+      <p>Un ítem que solo sube un número es aburrido. El sistema está pensado para <strong>modificar decisiones y crear sinergias</strong>, no para inflar estadísticas:</p>
+      <div class="cond"><span class="n">1</span><span class="t"><b>Modifica una mecánica existente</b>La linterna, la patada o el ruido funcionan distinto.</span></div>
+      <div class="cond"><span class="n">2</span><span class="t"><b>Cambia una decisión</b>Ahora tenés una razón para hacer algo que antes no hacías.</span></div>
+      <div class="cond"><span class="n">3</span><span class="t"><b>Crea una sinergia</b>Este ítem + otro ítem producen algo diferente a la suma de sus partes.</span></div>
+      <div class="cond"><span class="n">4</span><span class="t"><b>Cambia la forma de jugar</b>Tu build favorece un estilo: sigilo, agresión o resistencia.</span></div>
+    </div>
+  </section>
+
+  <!-- ============ 07 · ARTE ============ -->
+  <section>
+    <span class="num">07</span>
+    <div class="kicker">Dirección artística</div>
+    <h2>Found footage × espacios liminales.</h2>
+    <p class="lead">Escenarios cotidianos vacíos —hospitales, supermercados, escuelas, estacionamientos— que resultan familiares pero profundamente inquietantes. Filtros de cámara analógica, distorsión, respiración y pasos lejanos. El objetivo es un <strong>impacto visual inmediato</strong>: «algo no encaja acá».</p>
+    <div class="grid3" style="margin-top:3vh">
+      <div class="frame" style="aspect-ratio:4/3">
+        <img src="IMAGENES/hcd/pasilloHospital2.png" alt="Pasillo hospital">
+        <div class="lbl">Hospital · iluminación fría</div>
+      </div>
+      <div class="frame" style="aspect-ratio:4/3">
+        <img src="IMAGENES/ConceptMoll.png" alt="Centro comercial liminal">
+        <div class="lbl">Centro comercial · Backrooms</div>
+      </div>
+      <div class="frame" style="aspect-ratio:4/3">
+        <img src="IMAGENES/ConceptHospital.png" alt="Hospital liminal">
+        <div class="lbl">Corredores verdes · uncanny</div>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip">Bodycam handheld</span>
+      <span class="chip">Grano y scanlines VHS</span>
+      <span class="chip">Luz amarillenta tipo Backrooms</span>
+      <span class="chip">Body horror sugerido</span>
+      <span class="chip">Sin gore explícito</span>
+    </div>
+    <div class="grid2" style="margin-top:3vh">
+      <div class="frame" style="aspect-ratio:452/685;max-height:60vh">
+        <img src="IMAGENES/hcd/plano%20pasillo.png" alt="Plano de pasillo" style="object-fit:contain;background:#fff">
+        <div class="lbl">Plano · módulo de pasillo (blit)</div>
+      </div>
+      <div>
+        <h3>Por qué un plano</h3>
+        <p>La arquitectura del laberinto se documenta como <strong>módulos reutilizables</strong>. Cada pasillo es una plantilla con puertas, señalética, puntos de luz y spawns. El procedural los recombina: misma gramática, distinta experiencia.</p>
+        <p>Esa repetición con variación es lo que produce la sensación de «ya estuve acá… pero no exactamente así» — el corazón del horror liminal.</p>
+        <div class="chips">
+          <span class="chip hot">Módulos = blits</span>
+          <span class="chip">Wayfinding que contradice</span>
+          <span class="chip">Spawns por prefab</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 08 · TÉCNICO ============ -->
+  <section>
+    <span class="num">08</span>
+    <div class="kicker">Estado técnico</div>
+    <h2>Ya está construido en Unity.</h2>
+    <div class="grid2">
+      <div>
+        <dl class="kv">
+          <dt>Motor</dt><dd>Unity · URP · Input System · Render Pipeline propio VHS</dd>
+          <dt>Enemigos</dt><dd>4 tipos con IA propia (Zombie / Runner / Blind / Nemesis) + Factory + Spawner procedurales</dd>
+          <dt>Nemesis</dt><dd>Inmortal por diseño: <code>TakeDamage</code> y <code>Die</code> anulados; velocidad escala con cercanía y progreso</dd>
+          <dt>Ruido</dt><dd>Evento central <code>OnNoiseMade</code> + lectura directa del micrófono real (RMS) → el BlindEnemy caza por oído</dd>
+          <dt>Inventario</dt><dd>2 slots fijos con HUD de preview 3D, agarrar / soltar / lanzar</dd>
+          <dt>Armas</dt><dd>Revólver con tambor y reserva, Glock, escopeta; VFX de disparo, recoil, mira, caída de balas al recargar</dd>
+          <dt>Atmósfera</dt><dd>Shaders VHS (grano, smear, chroma), filtro rojo de daño, bodycam shake, overlay de salud baja</dd>
+          <dt>Mapa</dt><dd>Generador procedural por blits: habitaciones, conexiones, loot, dificultad y perfilado de luz</dd>
+        </dl>
+        <div class="chips" style="margin-top:2.5vh">
+          <span class="chip hot">Factory + Spawner</span>
+          <span class="chip">Event-driven</span>
+          <span class="chip">Ragdoll</span>
+          <span class="chip">Puertas con código</span>
+          <span class="chip">Menú principal</span>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:.82rem;color:#8f8a7e;margin-bottom:1.5vh">Diagrama de arquitectura del proyecto (click para ampliar) —</p>
+        <img class="uml" id="uml" src="IMAGENES/hcd/diagrama.png" alt="Diagrama UML Prisa Controlada" title="Click para ampliar">
+        <p style="font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:#5e5b54;margin-top:1vh">Prisa Controlada · UML del código real</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 09 · CIERRE ============ -->
+  <section style="text-align:center;border-bottom:none">
+    <div class="kicker">Diferencial</div>
+    <h2 style="max-width:26ch;margin-inline:auto">¿Qué hace único a este proyecto?</h2>
+    <div class="grid4">
+      <div class="slot"><span class="cat">Un brazo</span><span class="qty">Limitación física real</span></div>
+      <div class="slot"><span class="cat">Micrófono</span><span class="qty">Tu voz te delata</span></div>
+      <div class="slot"><span class="cat">Nemesis</span><span class="qty">Se puede ver, no vencer</span></div>
+      <div class="slot"><span class="cat">Final</span><span class="qty"><span class="sp-inline" role="button" tabindex="0">El monstruo eras vos</span></span></div>
+    </div>
+    <p class="lead" style="margin:4vh auto 0;text-align:center">Nadie murió en la historia de desarrollo… <span class="red">todavía.</span></p>
+    <p style="margin:1vh auto 0;text-align:center;font-size:.8rem;letter-spacing:.24em;text-transform:uppercase;color:#6d6a62">en el sentido literal</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="big"><span class="glitch" data-t="LIMINAL NIGHTMARE">LIMINAL NIGHTMARE</span></div>
+  <div class="tagline">Solve · Explore · Kill · Repeat</div>
+  <div class="fine">High Concept Document · Diseño y Producción · Ian · Agus · Fran · Mati</div>
+</footer>
+
+<!-- FX -->
+<div class="fx fx-noise"></div>
+<div class="fx fx-scan"></div>
+<div class="fx fx-vig"></div>
+<div class="fx fx-track"><i></i></div>
+
+<!-- EASTER EGG -->
+<div id="egg" role="dialog" aria-hidden="true">
+  <div class="h">// ARCHIVOS OCULTOS</div>
+  <div class="sub">logs_del_discord.txt · acceso no autorizado</div>
+  <div class="memes">
+    <figure>
+      <img src="IMAGENES/hcd/meme1.png" alt="Mensaje de Discord: casi borro el proyecto entero">
+      <figcaption>zarigueya · 12:33 — "casi borro el proyecto entero"</figcaption>
+    </figure>
+    <figure>
+      <img src="IMAGENES/hcd/meme2.png" alt="Mensajes de Discord: no se guardó la escena / sí se guardó">
+      <figcaption>zarigueya · 13:01 → 15:50 — el eterno ciclo</figcaption>
+    </figure>
+  </div>
+  <div class="close">Esc para volver a la realidad</div>
+</div>
+
+<script>
+(function(){
+  const bar = document.getElementById('bar');
+  const tc  = document.getElementById('tc');
+  const hint = document.getElementById('hint');
+  const eggHint = document.getElementById('eggHint');
+  const egg = document.getElementById('egg');
+  const t0 = Date.now();
+  let eggOpen = false;
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function tick(){
+    const s = Math.floor((Date.now()-t0)/1000);
+    tc.textContent = '00:' + pad(Math.floor(s/60)) + ':' + pad(s%60);
+    const h = document.documentElement;
+    const max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max>0 ? (100*h.scrollTop/max) : 0) + '%';
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  setTimeout(()=>hint.classList.add('off'), 6000);
+
+  function glitch(){
+    document.body.classList.add('glitching');
+    setTimeout(()=>document.body.classList.remove('glitching'), 300);
+  }
+  setInterval(()=>{ if(Math.random()<0.5) glitch(); }, 9000);
+
+  function toggleEgg(force){
+    eggOpen = (typeof force === 'boolean') ? force : !eggOpen;
+    egg.classList.toggle('on', eggOpen);
+    egg.setAttribute('aria-hidden', eggOpen ? 'false' : 'true');
+    if(eggOpen) glitch();
+  }
+
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'm' || e.key === 'M'){ e.preventDefault(); toggleEgg(); }
+    else if(e.key === 'Escape' && eggOpen){ toggleEgg(false); }
+  });
+  egg.addEventListener('click', ()=>toggleEgg(false));
+  eggHint.style.pointerEvents = 'auto';
+  eggHint.style.cursor = 'pointer';
+  eggHint.addEventListener('click', ()=>toggleEgg());
+
+  document.querySelectorAll('.spoiler-cover').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const box = btn.closest('.spoiler');
+      box.classList.add('revealed');
+      glitch();
+      btn.setAttribute('aria-hidden','true');
+    });
+  });
+
+  function reveal(el){
+    if(el.classList.contains('open')) return;
+    el.classList.add('open');
+    glitch();
+  }
+  document.querySelectorAll('.sp-inline').forEach(el=>{
+    el.addEventListener('click', ()=>reveal(el));
+    el.addEventListener('keydown', e=>{
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); reveal(el); }
+    });
+  });
+
+  const uml = document.getElementById('uml');
+  if(uml){
+    uml.addEventListener('click', ()=>{
+      if(uml.style.position === 'fixed'){
+        uml.style.cssText = uml.dataset.orig;
+        delete uml.dataset.orig;
+      }else{
+        uml.dataset.orig = uml.style.cssText;
+        uml.style.cssText = 'position:fixed;inset:4vh 4vw;width:92vw;height:92vh;'+
+          'object-fit:contain;background:#0d0d0f;z-index:1200;cursor:zoom-out;padding:2vh';
+        glitch();
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>
